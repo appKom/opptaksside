@@ -56,25 +56,27 @@ export const authOptions: NextAuthOptions = {
 
           // Get committees of user
           const commiteeUrl = `${API_BASE_URL}/group.allByMember?input=${encodeURIComponent(
-            SuperJSON.stringify({ userId: userInfo.id })
+            SuperJSON.stringify(userInfo.id)
           )}`;
 
           const committeeResponse = await fetch(commiteeUrl, {
             method: "GET", // GET works for read queries
             headers: { "content-type": "application/json", ...headers },
           });
+          console.log(committeeResponse);
           if (!committeeResponse.ok) {
-            console.log(committeeResponse);
             throw new Error("Failed to fetch committees");
           }
 
-          const committeeData = await committeeResponse.json();
+          const committeeData = SuperJSON.parse(JSON.stringify((await committeeResponse.json()).result.data));
 
           // TODO: Ta med komité-id
-          const committees = committeeData.results.map((committee: any) => ({
-            name: committee.name_short,
-            id: committee.id,
-          }));
+          console.log(committeeData)
+
+
+          const committees = committeeData.map((committee: any) => (
+            committee.slug
+          ));
 
           console.log("Committees: ");
           console.log(committees);
