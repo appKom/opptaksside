@@ -89,9 +89,12 @@ const Admin = () => {
           },
           //Super admin :)
           ...(session?.user?.email &&
-          ["fhansteen@gmail.com", "jotto0214@gmail.com", "sindreeh@stud.ntnu.no"].includes(
-            session.user.email
-          )
+          [
+            "fhansteen@gmail.com",
+            "jotto0214@gmail.com",
+            "sindreeh@stud.ntnu.no",
+            "jorgen.4@live.no",
+          ].includes(session.user.email)
             ? [
                 {
                   title: "Send ut",
