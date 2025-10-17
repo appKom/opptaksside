@@ -1,13 +1,21 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import Auth0Provider from "next-auth/providers/auth0";
 import SuperJSON from "superjson";
-import createTRPCUntypedClient from "@trpc/react-query";
 
 const adminEmails = process.env.ADMIN_EMAILS?.split(",") || [];
 
-// createTRPCUntypedClient();
+interface User {
+  id: string;
+  phone: string;
+  name: string;
+}
 
-// TODO: Use superjson
+interface Group {
+  type: string;
+  slug: string;
+  abbreviation: string;
+  name: string;
+}
 
 // TODO: Move to config file
 const API_BASE_URL = "https://rpc.online.ntnu.no/api/trpc";
@@ -39,11 +47,10 @@ export const authOptions: NextAuthOptions = {
             throw new Error("Failed to fetch user profile");
           }
           // TODO: Ensure type safety
-
-          // TODO: Use superjson
           const userInfoSerialized = await userResponse.json();
-          const userInfo = userInfoSerialized.result.data.json;
-          console.log(userInfo); // TODO: Remove
+          const userInfo: User = SuperJSON.parse(
+            JSON.stringify(userInfoSerialized.result.data)
+          );
 
           // Check if user is committee
           const isStaffResponse = await fetch(`${API_BASE_URL}/user.isStaff`, {
@@ -52,7 +59,6 @@ export const authOptions: NextAuthOptions = {
           if (!isStaffResponse.ok)
             throw new Error("Failed to fetch staff status");
           const isCommittee = await isStaffResponse.json();
-          console.log("isCommittee: ", isCommittee);
 
           // Get committees of user
           const commiteeUrl = `${API_BASE_URL}/group.allByMember?input=${encodeURIComponent(
@@ -63,23 +69,19 @@ export const authOptions: NextAuthOptions = {
             method: "GET", // GET works for read queries
             headers: { "content-type": "application/json", ...headers },
           });
-          console.log(committeeResponse);
+
           if (!committeeResponse.ok) {
             throw new Error("Failed to fetch committees");
           }
 
-          const committeeData = SuperJSON.parse(JSON.stringify((await committeeResponse.json()).result.data));
+          const committeeData: Group[] = SuperJSON.parse(
+            JSON.stringify((await committeeResponse.json()).result.data)
+          );
 
-          // TODO: Ta med komité-id
-          console.log(committeeData)
-
-
-          const committees = committeeData.map((committee: any) => (
-            committee.slug
-          ));
-
-          console.log("Committees: ");
-          console.log(committees);
+          // TODO: Ta med komité-id (finnes det i det hele tatt?)
+          const committees = committeeData.map(
+            (committee: Group) => committee.slug
+          );
 
           return {
             id: userInfo.id,
