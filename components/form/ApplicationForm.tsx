@@ -125,6 +125,7 @@ export const ApplicationForm = (props: Props) => {
         <Line />
         <TextAreaInput
           label="Skriv litt om deg selv"
+          value={props.applicationData.about || ""}
           updateInputValues={(value: any) =>
             props.setApplicationData({ ...props.applicationData, about: value })
           }

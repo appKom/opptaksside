@@ -85,8 +85,25 @@ const Application: NextPage = () => {
   });
 
   const [showApplicationForm, setShowApplicationForm] = useState(
-    fetchedApplicationData?.exists
+    !fetchedApplicationData?.exists
   );
+
+  // Populate form with existing application data when editing
+  useEffect(() => {
+    if (fetchedApplicationData?.exists && fetchedApplicationData?.application) {
+      setApplicationData((prevData) => ({
+        ...prevData,
+        ...fetchedApplicationData.application,
+      }));
+    }
+  }, [fetchedApplicationData]);
+
+  // Update showApplicationForm when fetchedApplicationData changes
+  useEffect(() => {
+    if (fetchedApplicationData !== undefined) {
+      setShowApplicationForm(!fetchedApplicationData?.exists);
+    }
+  }, [fetchedApplicationData]);
 
   const createApplicantMutation = useMutation({
     mutationFn: createApplicant,
@@ -96,6 +113,7 @@ const Application: NextPage = () => {
         exists: true,
       });
       toast.success("Søknad sendt inn");
+      setShowApplicationForm(false);
     },
     onError: (error) => {
       if (error.message === "409 Application already exists for this period") {
@@ -112,6 +130,7 @@ const Application: NextPage = () => {
       queryClient.setQueryData(["applicant", periodId, applicantId], null);
       toast.success("Søknad trukket tilbake");
       setActiveTab(0);
+      setShowApplicationForm(true);
     },
     onError: () => toast.error("Det skjedde en feil, vennligst prøv igjen"),
   });
@@ -124,6 +143,7 @@ const Application: NextPage = () => {
         exists: true,
       });
       toast.success("Søknad sendt inn");
+      setShowApplicationForm(false);
     },
   });
 

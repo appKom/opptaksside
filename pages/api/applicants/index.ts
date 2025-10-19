@@ -1,5 +1,9 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { createApplicant, getApplicants } from "../../../lib/mongo/applicants";
+import {
+  createApplicant,
+  getApplicants,
+  editApplicant,
+} from "../../../lib/mongo/applicants";
 import { authOptions } from "../auth/[...nextauth]";
 import { getPeriodById } from "../../../lib/mongo/periods";
 import { getServerSession } from "next-auth";
@@ -90,17 +94,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           .json({ error: "Not within the application period" });
       }
 
-      const { applicant, error } = await createApplicant(requestBody);
+      const { applicant, error } = await editApplicant(requestBody);
       if (error) throw new Error(error);
 
-      const mode = process.env.NODE_ENV;
-
-      if (applicant && mode == "production") {
-        await sendConfirmationEmail(applicant);
-        await sendConfirmationSMS(applicant);
-      }
-
-      return res.status(201).json({ applicant });
+      return res.status(200).json({ applicant });
     }
   } catch (error) {
     if (error instanceof Error) {
