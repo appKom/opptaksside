@@ -33,37 +33,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       JSON.stringify((await committeeResponse.json()).result.data)
     );
 
-    const excludedCommitteeNames = [
-      "HS",
-      "Komiteledere",
-      "Pangkom",
-      "Fond",
-      "Æresmedlemmer",
-      "Bed&Fagkom",
-      "Bekk_påmeldte",
-      "booking",
-      "Buddy",
-      "CAG",
-      "Eksgruppa",
-      "Eldsterådet",
-      "Ex-Komiteer",
-      "interessegrupper",
-      "ITEX",
-      "ITEX-påmeldte",
-      "kobKom",
-      "Komiteer",
-      "Redaksjonen",
-      "Riddere",
-      "techtalks",
-      "Ex-Hovedstyret",
-      "Tillitsvalgte",
-      "Wiki - Komiteer access permissions",
-      "Wiki - Online edit permissions",
-      "X-Sport",
-    ];
+    const excludedCommitteeNames = ["HS"];
 
     // TODO: Ta med komité-id (finnes det i det hele tatt?)
-    const committees = committeeData
+    const committees: owCommitteeType[] = committeeData
       .filter((group: Group) => group.type == "COMMITTEE")
       .filter(
         (group: Group) => !excludedCommitteeNames.includes(group.name) // Exclude committees by name_short
@@ -74,7 +47,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         email: group.email,
         description_short: group.shortDescription,
         description_long: group.description,
-        image: group.imageUrl,
+        image: { xs: group.imageUrl, sm: group.imageUrl }, // TODO: Update to reflect new api
         application_description: group.description,
       }));
 

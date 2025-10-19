@@ -87,7 +87,7 @@ export type committeeInterviewType = {
 export type owCommitteeType = {
   name_short: string;
   name_long: string;
-  email?: string;
+  email: string;
   description_long?: string;
   description_short?: string;
   application_description?: string;
