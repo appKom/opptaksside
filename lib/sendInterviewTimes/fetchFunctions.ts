@@ -1,24 +1,33 @@
-import { committeeEmails, owCommitteeType } from "../types/types";
+import SuperJSON from "superjson";
+import { committeeEmails } from "../types/types";
+import { Group } from "../../pages/api/auth/[...nextauth]";
+
+const API_BASE_URL = "https://rpc.online.ntnu.no/api/trpc";
 
 export const fetchCommitteeEmails = async (): Promise<committeeEmails[]> => {
   try {
-    const baseUrl =
-      "https://old.online.ntnu.no/api/v1/group/online-groups/?page_size=999";
+    const commiteeUrl = `${API_BASE_URL}/group.all`;
 
-    const response = await fetch(baseUrl);
+    const committeeResponse = await fetch(commiteeUrl, {
+      method: "GET", // GET works for read queries
+      headers: { "content-type": "application/json" },
+    });
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch data");
+    if (!committeeResponse.ok) {
+      throw new Error("Failed to fetch committees");
     }
 
-    const data = await response.json();
+    const committeeData: Group[] = SuperJSON.parse(
+      JSON.stringify((await committeeResponse.json()).result.data)
+    );
 
-    const groups = data.results.map((group: owCommitteeType) => ({
-      name_short: group.name_short,
-      email: group.email,
+    // TODO: Ta med komité-id (finnes det i det hele tatt?)
+    const committees = committeeData.map((committee: Group) => ({
+      name_short: committee.slug,
+      email: committee.email,
     }));
 
-    return groups;
+    return committees;
   } catch (error) {
     console.error(error);
     return [];

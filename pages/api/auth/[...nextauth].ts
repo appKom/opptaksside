@@ -10,11 +10,15 @@ interface User {
   name: string;
 }
 
-interface Group {
+export interface Group {
   type: string;
   slug: string;
   abbreviation: string;
   name: string;
+  email: string;
+  shortDescription: string;
+  description: string;
+  imageUrl: string;
 }
 
 // TODO: Move to config file

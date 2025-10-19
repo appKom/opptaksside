@@ -1,8 +1,11 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { authOptions } from "../auth/[...nextauth]";
+import { authOptions, Group } from "../auth/[...nextauth]";
 import { getServerSession } from "next-auth";
 import { hasSession } from "../../../lib/utils/apiChecks";
 import { owCommitteeType } from "../../../lib/types/types";
+import SuperJSON from "superjson";
+
+const API_BASE_URL = "https://rpc.online.ntnu.no/api/trpc";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const session = await getServerSession(req, res, authOptions);
@@ -15,8 +18,20 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   try {
-    const baseUrl =
-      "https://old.online.ntnu.no/api/v1/group/online-groups/?page_size=999";
+    const commiteeUrl = `${API_BASE_URL}/group.all`;
+
+    const committeeResponse = await fetch(commiteeUrl, {
+      method: "GET", // GET works for read queries
+      headers: { "content-type": "application/json" },
+    });
+
+    if (!committeeResponse.ok) {
+      throw new Error("Failed to fetch committees");
+    }
+
+    const committeeData: Group[] = SuperJSON.parse(
+      JSON.stringify((await committeeResponse.json()).result.data)
+    );
 
     const excludedCommitteeNames = [
       "HS",
@@ -47,32 +62,23 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       "X-Sport",
     ];
 
-    const response = await fetch(baseUrl);
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch data");
-    }
-
-    const data = await response.json();
-
-    const groups = data.results
-      // .filter(
-      //   (group: { group_type: string }) => group.group_type === "committee"
-      // )
+    // TODO: Ta med komité-id (finnes det i det hele tatt?)
+    const committees = committeeData
+      .filter((group: Group) => group.type == "COMMITTEE")
       .filter(
-        (group: { name_short: string }) =>
-          !excludedCommitteeNames.includes(group.name_short) // Exclude committees by name_short
+        (group: Group) => !excludedCommitteeNames.includes(group.name) // Exclude committees by name_short
       )
-      .map((group: owCommitteeType) => ({
-        name_short: group.name_short,
-        name_long: group.name_long,
+      .map((group: Group) => ({
+        name_short: group.abbreviation,
+        name_long: group.name,
         email: group.email,
-        description_short: group.description_short,
-        description_long: group.description_long,
-        image: group?.image,
-        application_description: group.application_description,
+        description_short: group.shortDescription,
+        description_long: group.description,
+        image: group.imageUrl,
+        application_description: group.description,
       }));
-    return res.status(200).json(groups);
+
+    return res.status(200).json(committees);
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "An error occurred" });
