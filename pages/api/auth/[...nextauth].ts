@@ -10,11 +10,20 @@ interface User {
   name: string;
 }
 
-interface Group {
+/**
+ * A type representing a group from the OW API: {BASE_API}/group.all
+ *
+ * Includes only a subset of the properties available in the api, namely those we need.
+ */
+export interface OwGroup {
   type: string;
   slug: string;
   abbreviation: string;
   name: string;
+  email: string;
+  shortDescription: string;
+  description: string;
+  imageUrl: string;
 }
 
 // TODO: Move to config file
@@ -74,13 +83,13 @@ export const authOptions: NextAuthOptions = {
             throw new Error("Failed to fetch committees");
           }
 
-          const committeeData: Group[] = SuperJSON.parse(
+          const committeeData: OwGroup[] = SuperJSON.parse(
             JSON.stringify((await committeeResponse.json()).result.data)
           );
 
           // TODO: Ta med komité-id (finnes det i det hele tatt?)
           const committees = committeeData.map(
-            (committee: Group) => committee.slug
+            (committee: OwGroup) => committee.slug
           );
 
           return {

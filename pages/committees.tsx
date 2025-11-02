@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import LoadingPage from "../components/LoadingPage";
-import { owCommitteeType, periodType } from "../lib/types/types";
+import { OwCommittee, periodType } from "../lib/types/types";
 import CommitteeAboutCard from "../components/CommitteeAboutCard";
 import { useQuery } from "@tanstack/react-query";
 import { fetchOwCommittees } from "../lib/api/committeesApi";
@@ -10,68 +10,15 @@ import { MainTitle } from "../components/Typography";
 import { UsersIcon } from "@heroicons/react/24/outline";
 import { Tabs } from "../components/Tabs";
 import { UserIcon, BellAlertIcon } from "@heroicons/react/24/solid";
-import { shuffleList } from "../lib/utils/shuffleList";
+import { shuffleList, partition } from "../lib/utils/arrays";
 
-const excludedCommittees = ["Faddere", "Output"];
-
-const otherCommittees = ["Jubkom", "Velkom", "Ekskom", "Debug"];
-
-const hasPeriod = (committee: owCommitteeType, periods: periodType[]) => {
-  if (!Array.isArray(periods)) return false;
-
-  const today = new Date();
-
-  if (committee.name_short === "Bankom") {
-    return periods.some((period) => {
-      const applicationStart = new Date(period.applicationPeriod.start);
-      const applicationEnd = new Date(period.applicationPeriod.end);
-      return applicationStart <= today && applicationEnd >= today;
-    });
-  }
-
-  return periods.some((period) => {
-    const applicationStart = new Date(period.applicationPeriod.start);
-    const applicationEnd = new Date(period.applicationPeriod.end);
-
-    return (
-      applicationStart <= today &&
-      applicationEnd >= today &&
-      (period.committees.includes(committee.name_short) ||
-        period.optionalCommittees.includes(committee.name_short))
-    );
-  });
-};
-
-const isInterviewing = (committee: owCommitteeType, periods: periodType[]) => {
-  if (!Array.isArray(periods)) return false;
-
-  const today = new Date();
-
-  if (committee.name_short === "Bankom") {
-    return periods.some((period) => {
-      const interviewStart = new Date(period.interviewPeriod.start);
-      const interviewEnd = new Date(period.interviewPeriod.end);
-      return interviewStart <= today && interviewEnd >= today;
-    });
-  }
-
-  return periods.some((period) => {
-    const interviewStart = new Date(period.interviewPeriod.start);
-    const interviewEnd = new Date(period.interviewPeriod.end);
-
-    return (
-      interviewStart <= today &&
-      interviewEnd >= today &&
-      (period.committees.includes(committee.name_short) ||
-        period.optionalCommittees.includes(committee.name_short))
-    );
-  });
-};
-
-const Committees = () => {
-  const [committees, setCommittees] = useState<owCommitteeType[]>([]);
-  const [nodeCommittees, setNodeCommittees] = useState<owCommitteeType[]>([]);
-  const [committeesWithPeriod, setCommitteesWithPeriod] = useState<owCommitteeType[]>([]);
+// Page Component
+export default function Committees() {
+  const [committees, setCommittees] = useState<OwCommittee[]>([]);
+  const [nodeCommittees, setNodeCommittees] = useState<OwCommittee[]>([]);
+  const [committeesInActivePeriod, setCommitteesWithPeriod] = useState<
+    OwCommittee[]
+  >([]);
   const [periods, setPeriods] = useState<periodType[]>([]);
   const [activeTab, setActiveTab] = useState(0);
 
@@ -96,30 +43,24 @@ const Committees = () => {
   useEffect(() => {
     if (!owCommitteeData) return;
 
-    const filterNodeCommittees = owCommitteeData.filter(
-      (committee: owCommitteeType) =>
-        otherCommittees.includes(committee.name_short)
-    );
-    setNodeCommittees(shuffleList(filterNodeCommittees));
-
-    let filteredCommittees = owCommitteeData.filter(
-      (committee: owCommitteeType) =>
-        !excludedCommittees.includes(committee.name_short) &&
-        !otherCommittees.includes(committee.name_short)
+    const [filteredNonNodeCommittees, filteredNodeCommittees] = partition(
+      owCommitteeData,
+      (committee: OwCommittee) =>
+        committee.type != "NODE_COMMITTEE"
     );
 
-    setCommittees(shuffleList(filteredCommittees));
+    setCommittees(shuffleList(filteredNonNodeCommittees));
+    setNodeCommittees(shuffleList(filteredNodeCommittees));
 
-    const filteredCommitteesWithPeriod = owCommitteeData.filter(
-      (commitee: owCommitteeType) =>
-        (hasPeriod(commitee, periods) || isInterviewing(commitee, periods)) &&
-        !excludedCommittees.includes(commitee.name_short)
+    const filteredCommitteesInActivePeriod = owCommitteeData.filter(
+      (commitee: OwCommittee) =>
+        committeeIsInActivePeriod(commitee, periods) ||
+        committeeIsCurrentlyInterviewing(commitee, periods)
     );
+    setCommitteesWithPeriod(filteredCommitteesInActivePeriod);
 
-    setCommitteesWithPeriod(filteredCommitteesWithPeriod);
-
-    if (filteredCommitteesWithPeriod.length > 0) setActiveTab(2);
-
+    // Autoopen tab for committees in active period if there is currently an active period
+    if (filteredCommitteesInActivePeriod.length > 0) setActiveTab(2);
   }, [owCommitteeData, periods]);
 
   useEffect(() => {
@@ -150,42 +91,42 @@ const Committees = () => {
           {
             title: "Komiteer",
             icon: <UsersIcon className="w-5 h-5" />,
-            content: <CommitteList committees={committees} periods={periods} />,
+            content: (
+              <CommitteeList committees={committees} periods={periods} />
+            ),
           },
           {
             title: "Nodekomiteer",
             icon: <UserIcon className="w-5 h-5" />,
             content: (
-              <CommitteList committees={nodeCommittees} periods={periods} />
+              <CommitteeList committees={nodeCommittees} periods={periods} />
             ),
           },
-          ...(committeesWithPeriod.length > 0
+          ...(committeesInActivePeriod.length > 0
             ? [
-              {
-                title: "Har opptak",
-                icon: <BellAlertIcon className="w-5 h-5" />,
-                content: (
-                  <CommitteList
-                    committees={committeesWithPeriod}
-                    periods={periods}
-                  />
-                ),
-              },
-            ]
+                {
+                  title: "Har opptak",
+                  icon: <BellAlertIcon className="w-5 h-5" />,
+                  content: (
+                    <CommitteeList
+                      committees={committeesInActivePeriod}
+                      periods={periods}
+                    />
+                  ),
+                },
+              ]
             : []),
         ]}
       />
     </div>
   );
-};
+}
 
-export default Committees;
-
-const CommitteList = ({
+const CommitteeList = ({
   committees,
   periods,
 }: {
-  committees: owCommitteeType[];
+  committees: OwCommittee[];
   periods: periodType[];
 }) => (
   <div className="w-10/12 px-4 mx-auto bg-white lg:px-6 dark:bg-gray-900">
@@ -193,18 +134,80 @@ const CommitteList = ({
       {committees
         ?.sort(
           (a, b) =>
-            Number(hasPeriod(b, periods)) - Number(hasPeriod(a, periods))
+            Number(committeeIsInActivePeriod(b, periods)) -
+            Number(committeeIsInActivePeriod(a, periods))
         )
         .map((committee, index) => {
           return (
             <CommitteeAboutCard
               key={index}
               committee={committee}
-              hasPeriod={hasPeriod(committee, periods)}
-              isInterviewing={isInterviewing(committee, periods)}
+              hasPeriod={committeeIsInActivePeriod(committee, periods)}
+              isInterviewing={committeeIsCurrentlyInterviewing(
+                committee,
+                periods
+              )}
             />
           );
         })}
     </div>
   </div>
 );
+
+/**
+ *
+ * @param committee
+ * @param periods list of all periods
+ * @returns true if *committee* is either a committee or an optional committee in a period that is currently open for application
+ */
+const committeeIsInActivePeriod = (
+  committee: OwCommittee,
+  periods: periodType[]
+) => {
+  if (!Array.isArray(periods)) return false;
+
+  const today = new Date();
+
+  const activePeriods = periods.filter((period) => {
+    const applicationStart = new Date(period.applicationPeriod.start);
+    const applicationEnd = new Date(period.applicationPeriod.end);
+    return applicationStart <= today && applicationEnd >= today;
+  });
+
+  // Bankom is always active, since you can be a representative of bankom from each committee
+  if (committee.name_short === "Bankom") {
+    return activePeriods.length > 0;
+  }
+
+  return activePeriods.some(
+    (period) =>
+      period.committees.includes(committee.name_short) ||
+      period.optionalCommittees.includes(committee.name_short)
+  );
+};
+
+const committeeIsCurrentlyInterviewing = (
+  committee: OwCommittee,
+  periods: periodType[]
+) => {
+  if (!Array.isArray(periods)) return false;
+
+  const today = new Date();
+
+  const periodsWithInterviewsCurrently = periods.filter((period) => {
+    const interviewStart = new Date(period.interviewPeriod.start);
+    const interviewEnd = new Date(period.interviewPeriod.end);
+    return interviewStart <= today && interviewEnd >= today;
+  });
+
+  // Bankom is always active, since you can be a representative of bankom from each committee
+  if (committee.name_short === "Bankom") {
+    return periodsWithInterviewsCurrently.length > 0;
+  }
+
+  return periodsWithInterviewsCurrently.some(
+    (period) =>
+      period.committees.includes(committee.name_short) ||
+      period.optionalCommittees.includes(committee.name_short)
+  );
+};

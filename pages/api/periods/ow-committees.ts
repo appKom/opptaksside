@@ -1,8 +1,11 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { authOptions } from "../auth/[...nextauth]";
+import { authOptions, OwGroup } from "../auth/[...nextauth]";
 import { getServerSession } from "next-auth";
 import { hasSession } from "../../../lib/utils/apiChecks";
-import { owCommitteeType } from "../../../lib/types/types";
+import { OwCommittee } from "../../../lib/types/types";
+import SuperJSON from "superjson";
+
+const API_BASE_URL = "https://rpc.online.ntnu.no/api/trpc";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const session = await getServerSession(req, res, authOptions);
@@ -15,64 +18,42 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   try {
-    const baseUrl =
-      "https://old.online.ntnu.no/api/v1/group/online-groups/?page_size=999";
+    const commiteeUrl = `${API_BASE_URL}/group.all`;
 
-    const excludedCommitteeNames = [
-      "HS",
-      "Komiteledere",
-      "Pangkom",
-      "Fond",
-      "Æresmedlemmer",
-      "Bed&Fagkom",
-      "Bekk_påmeldte",
-      "booking",
-      "Buddy",
-      "CAG",
-      "Eksgruppa",
-      "Eldsterådet",
-      "Ex-Komiteer",
-      "interessegrupper",
-      "ITEX",
-      "ITEX-påmeldte",
-      "kobKom",
-      "Komiteer",
-      "Redaksjonen",
-      "Riddere",
-      "techtalks",
-      "Ex-Hovedstyret",
-      "Tillitsvalgte",
-      "Wiki - Komiteer access permissions",
-      "Wiki - Online edit permissions",
-      "X-Sport",
-    ];
+    const committeeResponse = await fetch(commiteeUrl, {
+      method: "GET", // GET works for read queries
+      headers: { "content-type": "application/json" },
+    });
 
-    const response = await fetch(baseUrl);
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch data");
+    if (!committeeResponse.ok) {
+      throw new Error("Failed to fetch committees");
     }
 
-    const data = await response.json();
+    const committeeData: OwGroup[] = SuperJSON.parse(
+      JSON.stringify((await committeeResponse.json()).result.data)
+    );
 
-    const groups = data.results
-      // .filter(
-      //   (group: { group_type: string }) => group.group_type === "committee"
-      // )
+    // TODO: Seems like a workaround, should be handled in OW API?
+    const excludedCommitteeSlugs = ["hs", "faddere", "output", "itex", "fond", "debug"];
+
+    // TODO: Ta med komité-id (finnes det i det hele tatt?)
+    const committees: OwCommittee[] = committeeData
+      .filter((group: OwGroup) => (group.type == "COMMITTEE" || group.type == "NODE_COMMITTEE"))
       .filter(
-        (group: { name_short: string }) =>
-          !excludedCommitteeNames.includes(group.name_short) // Exclude committees by name_short
+        (group: OwGroup) => !excludedCommitteeSlugs.includes(group.slug) // Exclude committees by name_short
       )
-      .map((group: owCommitteeType) => ({
-        name_short: group.name_short,
-        name_long: group.name_long,
+      .map((group: OwGroup) => ({
+        name_short: group.abbreviation,
+        name_long: group.name,
         email: group.email,
-        description_short: group.description_short,
-        description_long: group.description_long,
-        image: group?.image,
-        application_description: group.application_description,
+        description_short: group.shortDescription,
+        description_long: group.description,
+        image: { xs: group.imageUrl, sm: group.imageUrl }, // TODO: Update to reflect new api
+        application_description: group.description,
+        type: group.type,
       }));
-    return res.status(200).json(groups);
+
+    return res.status(200).json(committees);
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "An error occurred" });

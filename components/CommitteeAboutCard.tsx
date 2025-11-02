@@ -1,15 +1,15 @@
-import { owCommitteeType } from "../lib/types/types";
+import { OwCommittee } from "../lib/types/types";
 
 interface CommitteeAboutCardProps {
-  committee: owCommitteeType;
+  committee: OwCommittee;
   hasPeriod: boolean;
-  isInterviewing: boolean
+  isInterviewing: boolean;
 }
 
 const CommitteeAboutCard = ({
   committee,
   hasPeriod,
-  isInterviewing
+  isInterviewing,
 }: CommitteeAboutCardProps) => {
   const { image, name_long, name_short, email, application_description } =
     committee;
