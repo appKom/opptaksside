@@ -1,6 +1,7 @@
 import { QueryFunctionContext } from "@tanstack/react-query";
+import { OwCommittee } from "../types/types";
 
-export const fetchOwCommittees = async () => {
+export const fetchOwCommittees = async (): Promise<OwCommittee[]> => {
   return fetch(`/api/periods/ow-committees`).then((res) => res.json());
 };
 

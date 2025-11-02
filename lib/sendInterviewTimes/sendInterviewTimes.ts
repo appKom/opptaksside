@@ -1,3 +1,4 @@
+import { fetchOwCommittees } from "../api/committeesApi";
 import { getApplicationByMongoId } from "../mongo/applicants";
 import { getCommitteesByPeriod } from "../mongo/committees";
 import { getInterviewsByPeriod } from "../mongo/interviews";
@@ -11,7 +12,6 @@ import {
   algorithmType,
   committeePreferenceType,
 } from "../types/types";
-import { fetchCommitteeEmails } from "./fetchFunctions";
 import { formatAndSendEmails } from "./formatAndSend";
 
 export const sendOutInterviewTimes = async ({
@@ -36,7 +36,10 @@ export const sendOutInterviewTimes = async ({
 
     const committeeInterviewTimes = committeeInterviewTimesData.result || [];
 
-    const committeeEmails = await fetchCommitteeEmails();
+    const committeeEmails = (await fetchOwCommittees()).map((committee) => ({
+      name_short: committee.name_short,
+      email: committee.email,
+    }));
 
     const fetchedAlgorithmData = await getInterviewsByPeriod(periodId);
     const algorithmData = fetchedAlgorithmData.interviews || [];
