@@ -12,7 +12,6 @@ import { Tabs } from "../components/Tabs";
 import { UserIcon, BellAlertIcon } from "@heroicons/react/24/solid";
 import { shuffleList, partition } from "../lib/utils/arrays";
 
-// TODO: Seems like a workaround, should be handled in OW API?
 // List of committees that should be under the tab "Nodekomitéer"
 const committeesUnderNodeCommitteesTab = [
   "Jubkom",

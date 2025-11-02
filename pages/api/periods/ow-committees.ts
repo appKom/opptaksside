@@ -34,13 +34,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     );
 
     // TODO: Seems like a workaround, should be handled in OW API?
-    const excludedCommitteeNames = ["HS", "Faddere", "Output"];
+    const excludedCommitteeNames = ["HS", "Faddere", "Output", "ITEX", "Fond"];
 
     // TODO: Ta med komité-id (finnes det i det hele tatt?)
     const committees: OwCommittee[] = committeeData
-      .filter((group: OwGroup) => group.type == "COMMITTEE")
+      .filter((group: OwGroup) => (group.type == "COMMITTEE" || group.type == "NODE_COMMITTEE"))
       .filter(
-        (group: OwGroup) => !excludedCommitteeNames.includes(group.name) // Exclude committees by name_short
+        (group: OwGroup) => !excludedCommitteeNames.includes(group.abbreviation) // Exclude committees by name_short
       )
       .map((group: OwGroup) => ({
         name_short: group.abbreviation,
