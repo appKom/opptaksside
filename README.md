@@ -1,6 +1,6 @@
-# Cappelini
+# Opptaksside
 
-Cappelini is a web application built with Next.js. It's designed to make the process of applying to committees at Online easier for both the applicants and the committees. This platform helps organize and manage applications, making everything simpler and more straightforward for everyone.
+This is a web application built with Next.js. It's designed to make the process of applying to committees at Online easier for both the applicants and the committees. This platform helps organize and manage applications, making everything simpler and more straightforward for everyone.
 
 ## Getting Started
 
