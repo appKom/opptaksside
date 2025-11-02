@@ -71,6 +71,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       const requestBody: applicantType = req.body;
       requestBody.date = new Date(new Date().getTime() + 60 * 60 * 2000); // add date with norwegain time (GMT+2)
 
+      // Remove _id field to prevent MongoDB immutable field error
+      if ("_id" in requestBody) {
+        delete (requestBody as any)._id;
+      }
+
       const { period } = await getPeriodById(String(requestBody.periodId));
 
       if (!period) {
@@ -96,14 +101,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
       const { applicant, error } = await editApplicant(requestBody);
       if (error) throw new Error(error);
-
       return res.status(200).json({ applicant });
     }
   } catch (error) {
+    console.error("API Error:", error);
     if (error instanceof Error) {
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
       return res.status(500).json({ error: error.message });
     }
-    return res.status(500).json("An unexpected error occurred");
+    return res.status(500).json({ error: "An unexpected error occurred" });
   }
 
   res.setHeader("Allow", ["GET", "POST", "PUT"]);

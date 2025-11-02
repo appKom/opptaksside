@@ -131,6 +131,7 @@ const Application: NextPage = () => {
       toast.success("Søknad trukket tilbake");
       setActiveTab(0);
       setShowApplicationForm(true);
+      router.push("/apply");
     },
     onError: () => toast.error("Det skjedde en feil, vennligst prøv igjen"),
   });
@@ -242,7 +243,7 @@ const Application: NextPage = () => {
           </div>
         )}
 
-        {applicationData.phone && (
+        {applicationData?.phone && !fetchedApplicationData?.application && (
           <div className="w-full max-w-md">
             <ApplicantCard
               applicant={applicationData as applicantType}
