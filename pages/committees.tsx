@@ -13,9 +13,6 @@ import { UserIcon, BellAlertIcon } from "@heroicons/react/24/solid";
 import { shuffleList, partition } from "../lib/utils/arrays";
 
 // TODO: Seems like a workaround, should be handled in OW API?
-const excludedCommittees = ["Faddere", "Output"];
-
-// TODO: Seems like a workaround, should be handled in OW API?
 // List of committees that should be under the tab "Nodekomitéer"
 const committeesUnderNodeCommitteesTab = [
   "Jubkom",
@@ -55,13 +52,8 @@ export default function Committees() {
   useEffect(() => {
     if (!owCommitteeData) return;
 
-    // Filter out excluded committees
-    const nonExcludedCommittees = owCommitteeData.filter(
-      (committee) => !excludedCommittees.includes(committee.name_short)
-    );
-
     const [filteredNonNodeCommittees, filteredNodeCommittees] = partition(
-      nonExcludedCommittees,
+      owCommitteeData,
       (committee: OwCommittee) =>
         !committeesUnderNodeCommitteesTab.includes(committee.name_short)
     );
@@ -69,7 +61,7 @@ export default function Committees() {
     setCommittees(shuffleList(filteredNonNodeCommittees));
     setNodeCommittees(shuffleList(filteredNodeCommittees));
 
-    const filteredCommitteesInActivePeriod = nonExcludedCommittees.filter(
+    const filteredCommitteesInActivePeriod = owCommitteeData.filter(
       (commitee: OwCommittee) =>
         committeeIsInActivePeriod(commitee, periods) ||
         committeeIsCurrentlyInterviewing(commitee, periods)

@@ -33,7 +33,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       JSON.stringify((await committeeResponse.json()).result.data)
     );
 
-    const excludedCommitteeNames = ["HS"];
+    // TODO: Seems like a workaround, should be handled in OW API?
+    const excludedCommitteeNames = ["HS", "Faddere", "Output"];
 
     // TODO: Ta med komité-id (finnes det i det hele tatt?)
     const committees: OwCommittee[] = committeeData
