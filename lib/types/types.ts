@@ -97,6 +97,7 @@ export type OwCommittee = {
   description_short?: string;
   application_description?: string;
   image?: { xs: string; sm: string };
+  type: string;
 };
 
 export type algorithmType = {

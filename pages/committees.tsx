@@ -12,14 +12,6 @@ import { Tabs } from "../components/Tabs";
 import { UserIcon, BellAlertIcon } from "@heroicons/react/24/solid";
 import { shuffleList, partition } from "../lib/utils/arrays";
 
-// List of committees that should be under the tab "Nodekomitéer"
-const committeesUnderNodeCommitteesTab = [
-  "Jubkom",
-  "Velkom",
-  "Ekskom",
-  "Debug",
-];
-
 // Page Component
 export default function Committees() {
   const [committees, setCommittees] = useState<OwCommittee[]>([]);
@@ -54,7 +46,7 @@ export default function Committees() {
     const [filteredNonNodeCommittees, filteredNodeCommittees] = partition(
       owCommitteeData,
       (committee: OwCommittee) =>
-        !committeesUnderNodeCommitteesTab.includes(committee.name_short)
+        committee.type != "NODE_COMMITTEE"
     );
 
     setCommittees(shuffleList(filteredNonNodeCommittees));
