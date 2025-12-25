@@ -16,7 +16,13 @@ export const getCommitteeDisplayNameFactory = async () => {
       ({ name_short }) => name_short == committee
     )?.name_long;
 
-    return name_long ? `${name_long} (${committee})` : committee;
+    if (!name_long) {
+      return committee;
+    } else if (name_long == committee) {
+      return committee;
+    } else {
+      return `${name_long} (${committee})`;
+    }
   };
 
   return getCommitteeDisplayName;

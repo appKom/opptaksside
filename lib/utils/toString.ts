@@ -1,8 +1,17 @@
 export const changeDisplayName = (committee: string) => {
-  if (committee.toLowerCase() === "kjelleren") {
-    return "Realfagskjelleren";
-  }
-  return committee.charAt(0).toUpperCase() + committee.slice(1);
+  const apiName = revertDisplayName(committee);
+  return apiName === "Kjelleren" ? "Realfagskjelleren" : apiName;
+};
+
+/**
+ * Changes committeeName back to the capitalization used in the API.
+ *
+ * @param committee
+ */
+export const revertDisplayName = (committee: string) => {
+  // TODO: Don't do this reverse .toLowerCase(), but use the value given from the api along the whole path instead
+  const capitalized = committee.charAt(0).toUpperCase() + committee.slice(1);
+  return capitalized;
 };
 
 export function formatPhoneNumber(phoneNumber: string) {
