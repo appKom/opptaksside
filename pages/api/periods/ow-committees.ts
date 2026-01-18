@@ -1,9 +1,9 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { authOptions, OwGroup } from "../auth/[...nextauth]";
+import { authOptions } from "../auth/[...nextauth]";
 import { getServerSession } from "next-auth";
 import { hasSession } from "../../../lib/utils/apiChecks";
-import { OwCommittee } from "../../../lib/types/types";
 import SuperJSON from "superjson";
+import { OwGroup } from "../../../lib/types/types";
 
 const API_BASE_URL = "https://rpc.online.ntnu.no/api/trpc";
 
@@ -34,22 +34,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     );
 
     // TODO: Ta med komité-id (finnes det i det hele tatt?)
-    const committees: OwCommittee[] = committeeData
-      .filter(
-        (group: OwGroup) =>
-          group.recruitmentMethod == "SPRING_APPLICATION" ||
-          group.recruitmentMethod == "AUTUMN_APPLICATION",
-      )
-      .map((group: OwGroup) => ({
-        name_short: group.abbreviation,
-        name_long: group.name,
-        email: group.email,
-        description_short: group.shortDescription,
-        description_long: group.description,
-        image: { xs: group.imageUrl, sm: group.imageUrl }, // TODO: Update to reflect new api
-        application_description: group.description,
-        type: group.type,
-      }));
+    const committees: OwGroup[] = committeeData.filter(
+      (group: OwGroup) =>
+        group.recruitmentMethod == "SPRING_APPLICATION" ||
+        group.recruitmentMethod == "AUTUMN_APPLICATION",
+    );
 
     return res.status(200).json(committees);
   } catch (error) {
