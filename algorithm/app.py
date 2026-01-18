@@ -44,7 +44,7 @@ def main():
         return format_match_results(match_result, applicants, period_id)
     else:
         result = {
-            "status": match_result["solver_status"],
+            "status": str(match_result["solver_status"]),
             "total_wanted_meetings": match_result["total_wanted_meetings"],
             "matched_meetings": match_result["matched_meetings"]
         }
