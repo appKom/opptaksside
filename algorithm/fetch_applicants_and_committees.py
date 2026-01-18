@@ -4,25 +4,28 @@ from datetime import datetime, timedelta, timezone
 import os
 import certifi
 from typing import List, Dict
+from flask import Flask
 
 from mip_matching.Committee import Committee
 from mip_matching.TimeInterval import TimeInterval
 from mip_matching.Applicant import Applicant
 from mip_matching.match_meetings import match_meetings, MeetingMatch
 
+app = Flask(__name__)
 
+@app.route("/") # type: ignore
 def main():
     print("Starting matching")
     periods = fetch_periods()
 
     for period in periods:
         periodId = str(period["_id"])
-        application_end = datetime.fromisoformat(
-            period["applicationPeriod"]["end"].replace("Z", "+00:00"))
+        # application_end = datetime.fromisoformat(
+        #     period["applicationPeriod"]["end"].replace("Z", "+00:00"))
 
         now = datetime.now(timezone.utc)
 
-        if (application_end < now and period["hasSentInterviewTimes"] == False):
+        if (period["name"] == "Test flask api" and period["hasSentInterviewTimes"] == False):
             applicants = fetch_applicants(periodId)
             committee_times = fetch_committee_times(periodId)
 
