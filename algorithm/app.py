@@ -45,7 +45,7 @@ def main():
 
             send_to_db(match_result, applicants, periodId)
             print("Meetings sent to database")
-            return match_result
+            return format_match_results(match_result, applicants, periodId)
 
 
 def send_to_db(match_result: MeetingMatch, applicants: List[dict], periodId):
