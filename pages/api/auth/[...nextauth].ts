@@ -17,6 +17,13 @@ interface User {
  */
 export interface OwGroup {
   type: string;
+  recruitmentMethod:
+    | "NONE"
+    | "SPRING_APPLICATION"
+    | "AUTUMN_APPLICATION"
+    | "GENERAL_ASSEMBLY"
+    | "NOMINATION"
+    | "OTHER";
   slug: string;
   abbreviation: string;
   name: string;
@@ -58,7 +65,7 @@ export const authOptions: NextAuthOptions = {
           // TODO: Ensure type safety
           const userInfoSerialized = await userResponse.json();
           const userInfo: User = SuperJSON.parse(
-            JSON.stringify(userInfoSerialized.result.data)
+            JSON.stringify(userInfoSerialized.result.data),
           );
 
           // Check if user is committee
@@ -71,7 +78,7 @@ export const authOptions: NextAuthOptions = {
 
           // Get committees of user
           const commiteeUrl = `${API_BASE_URL}/group.allByMember?input=${encodeURIComponent(
-            SuperJSON.stringify(userInfo.id)
+            SuperJSON.stringify(userInfo.id),
           )}`;
 
           const committeeResponse = await fetch(commiteeUrl, {
@@ -84,12 +91,12 @@ export const authOptions: NextAuthOptions = {
           }
 
           const committeeData: OwGroup[] = SuperJSON.parse(
-            JSON.stringify((await committeeResponse.json()).result.data)
+            JSON.stringify((await committeeResponse.json()).result.data),
           );
 
           // TODO: Ta med komité-id (finnes det i det hele tatt?)
           const committees = committeeData.map(
-            (committee: OwGroup) => committee.slug
+            (committee: OwGroup) => committee.slug,
           );
 
           return {
