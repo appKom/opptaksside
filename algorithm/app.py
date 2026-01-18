@@ -17,7 +17,7 @@ app = Flask(__name__)
 def main():
     print("Starting matching")
     period_id = request.args.get("period")
-    push_to_db = request.args.get("pushToDB")
+    push_to_db = request.args.get("pushToDB", False)
 
     applicants = fetch_applicants(period_id)
     committee_times = fetch_committee_times(period_id)
