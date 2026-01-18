@@ -37,7 +37,7 @@ export const sendOutInterviewTimes = async ({
     const committeeInterviewTimes = committeeInterviewTimesData.result || [];
 
     const committeeEmails = (await fetchOwCommittees()).map((committee) => ({
-      name_short: committee.name_short,
+      name_short: committee.abbreviation,
       email: committee.email,
     }));
 
@@ -49,7 +49,6 @@ export const sendOutInterviewTimes = async ({
       periodId,
       period,
       committeeEmails,
-      committeeInterviewTimes
     );
 
     const committeesToEmail = formatCommittees(applicantsToEmail);
@@ -68,14 +67,13 @@ const formatApplicants = async (
   periodId: string,
   period: periodType,
   committeeEmails: committeeEmails[],
-  committeeInterviewTimes: committeeInterviewType[]
 ): Promise<emailApplicantInterviewType[]> => {
   const applicantsToEmailMap: emailApplicantInterviewType[] = [];
 
   for (const app of algorithmData) {
     const dbApplication = await getApplicationByMongoId(
       app.applicantId,
-      periodId
+      periodId,
     );
 
     if (!dbApplication || !dbApplication.application) continue;
@@ -88,7 +86,7 @@ const formatApplicants = async (
             dbApplication.application.preferences.third,
           ].filter((committee) => committee !== "")
         : dbApplication.application.preferences.map(
-            (preference: committeePreferenceType) => preference.committee
+            (preference: committeePreferenceType) => preference.committee,
           );
 
     const allCommittees = [
@@ -97,18 +95,18 @@ const formatApplicants = async (
     ];
 
     const scheduledCommittees = app.interviews.map(
-      (interview) => interview.committeeName
+      (interview) => interview.committeeName,
     );
 
     const missingCommittees = allCommittees.filter(
-      (committee) => !scheduledCommittees.includes(committee)
+      (committee) => !scheduledCommittees.includes(committee),
     );
 
     const committees = app.interviews.map((interview) => {
       const committeeEmail = committeeEmails.find(
         (email) =>
           email.name_short.toLowerCase() ===
-          interview.committeeName.toLowerCase()
+          interview.committeeName.toLowerCase(),
       );
 
       return {
@@ -125,7 +123,7 @@ const formatApplicants = async (
     for (const missingCommittee of missingCommittees) {
       const committeeEmail = committeeEmails.find(
         (email) =>
-          email.name_short.toLowerCase() === missingCommittee.toLowerCase()
+          email.name_short.toLowerCase() === missingCommittee.toLowerCase(),
       );
 
       committees.push({
@@ -155,7 +153,7 @@ const formatApplicants = async (
 };
 
 const formatCommittees = (
-  applicantsToEmailMap: emailApplicantInterviewType[]
+  applicantsToEmailMap: emailApplicantInterviewType[],
 ): emailCommitteeInterviewType[] => {
   const committeesToEmail: { [key: string]: emailCommitteeInterviewType } = {};
 
