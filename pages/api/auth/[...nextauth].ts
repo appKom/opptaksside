@@ -72,7 +72,6 @@ export const authOptions: NextAuthOptions = {
             JSON.stringify((await committeeResponse.json()).result.data),
           );
 
-          // TODO: Ta med komité-id (finnes det i det hele tatt?)
           const committees = committeeData.map(
             (committee: OwGroup) => committee.slug,
           );
