@@ -2,8 +2,6 @@ import { BaseSyntheticEvent, useEffect, useRef } from "react";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import FullCalendar from "@fullcalendar/react";
-import timeGridPlugin from "@fullcalendar/timegrid";
-import interactionPlugin from "@fullcalendar/interaction";
 import { periodType, committeeInterviewType } from "../../lib/types/types";
 import toast from "react-hot-toast";
 import NotFound from "../../pages/404";
@@ -13,8 +11,7 @@ import useUnsavedChangesWarning from "../../lib/utils/unSavedChangesWarning";
 import { SimpleTitle } from "../Typography";
 import { useQuery } from "@tanstack/react-query";
 import { fetchApplicantsByPeriodIdAndCommittee } from "../../lib/api/applicantApi";
-import { CheckIcon } from "@heroicons/react/24/outline";
-import { XMarkIcon } from "@heroicons/react/24/solid";
+import { RoomBookingCalendar } from "./RoomBookingCalendar";
 
 interface Interview {
   id: string;
@@ -150,11 +147,15 @@ const CommitteeInterviewTimes = ({
     }
   }, [calendarEvents, selectedTimeslot]);
 
-  const handleDateSelect = (selectionInfo: any) => {
-    setCurrentSelection(selectionInfo);
-    setIsModalOpen(true);
-    setUnsavedChanges(true);
-  };
+  useEffect(() => {
+    if (period) {
+      setCountdown(getSubmissionDeadline());
+      const intervalId = setInterval(() => {
+        setCountdown(getSubmissionDeadline());
+      }, 1000);
+      return () => clearInterval(intervalId);
+    }
+  }, [period]);
 
   const handleRoomSubmit = () => {
     if (!roomInput) {
@@ -217,49 +218,9 @@ const CommitteeInterviewTimes = ({
     }
   };
 
-  const removeCell = (event: Interview) => {
-    setCalendarEvents((prevEvents) =>
-      prevEvents.filter((evt) => evt.id !== event.id)
-    );
-
-    setUnsavedChanges(true);
-  };
-
   const updateInterviewInterval = (e: BaseSyntheticEvent) => {
     setInterviewInterval(parseInt(e.target.value));
     setUnsavedChanges(true);
-  };
-
-  const calendarEventStyle = (eventContent: { event: Interview }) => {
-    return (
-      <div className="relative flex flex-col p-4">
-        {!hasAlreadySubmitted && (
-          <button
-            className="absolute top-0 right-0 m-2"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-
-              removeCell({
-                id: eventContent.event.id,
-                start: eventContent.event.start,
-                end: eventContent.event.end,
-                title: eventContent.event.title,
-              });
-            }}
-          >
-            <img
-              src="/close.svg"
-              alt="close icon"
-              style={{ width: "20px", height: "20px" }}
-            />
-          </button>
-        )}
-        <h1 className="text-sm sm:text-xl md:text-2xl lg:text-3xl break-words">
-          {eventContent.event.title}
-        </h1>
-      </div>
-    );
   };
 
   const formatEventsForExport = (events: Interview[]) => {
@@ -305,16 +266,6 @@ const CommitteeInterviewTimes = ({
       toast.error("Klarte ikke å slette innsendingen");
     }
   };
-
-  useEffect(() => {
-    if (period) {
-      setCountdown(getSubmissionDeadline());
-      const intervalId = setInterval(() => {
-        setCountdown(getSubmissionDeadline());
-      }, 1000);
-      return () => clearInterval(intervalId);
-    }
-  }, [period]);
 
   const getSubmissionDeadline = (): string => {
     const deadlineIso = period!.applicationPeriod.end;
@@ -373,7 +324,7 @@ const CommitteeInterviewTimes = ({
   if (deadLineHasPassed)
     return (
       <SimpleTitle
-        title="Det er ikke lenger mulig å legge inn tider"
+        title="Det er ikke lenger mulig å booke rom for intervjuer"
         size="medium"
       />
     );
@@ -381,11 +332,11 @@ const CommitteeInterviewTimes = ({
   return (
     <div className="flex flex-col items-center">
       <div className="flex flex-row gap-2 px-5 mt-5 mb-6 text-2xl font-semibold text-center">
-        Legg inn ledige tider for intervjuer
+        Book rom for intervjuer
       </div>
       <ImportantNote
         prefix="NB"
-        text={`Fristen for å legge inn tider er ${countdown}`}
+        text={`Fristen for å booke rom til intervjuer er ${countdown}`}
       />
 
       <p className="px-5 my-5 text-lg text-center">
@@ -418,49 +369,8 @@ const CommitteeInterviewTimes = ({
             </select>
           </div>
         )}
-        <p className="py-5 text-lg">{`${interviewsPlanned} / ${numberOfApplications} intervjuer planlagt`}</p>
-        <div className="mx-4 sm:mx-20">
-          <FullCalendar
-            ref={calendarRef}
-            eventClassNames={"dark:bg-online-darkBlue"}
-            plugins={[timeGridPlugin, interactionPlugin]}
-            initialView="timeGridWeek"
-            headerToolbar={{
-              start: "today prev,next",
-              center: "",
-              end: "",
-            }}
-            events={calendarEvents}
-            selectable={!hasAlreadySubmitted}
-            selectMirror={true}
-            height="auto"
-            select={handleDateSelect}
-            slotDuration={`00:${interviewInterval}`}
-            businessHours={{ startTime: "08:00", endTime: "18:00" }}
-            weekends={false}
-            slotMinTime="08:00"
-            slotMaxTime="18:00"
-            allDaySlot={false}
-            validRange={visibleRange}
-            eventContent={calendarEventStyle}
-            eventConstraint={{ startTime: "08:00", endTime: "18:00" }}
-            selectAllow={(selectInfo) => {
-              const start = selectInfo.start;
-              const end = selectInfo.end;
-              const startHour = start.getHours();
-              const endHour = end.getHours();
-              const isSameDay = start.toDateString() === end.toDateString();
-              return isSameDay && startHour >= 8 && endHour <= 18;
-            }}
-            slotLabelFormat={{
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            }}
-            handleWindowResize={true}
-            longPressDelay={0}
-          />
-        </div>
+
+        <RoomBookingCalendar />
 
         {!hasAlreadySubmitted && (
           <label className="block mt-5 mb-2 font-medium text-m">
@@ -481,37 +391,6 @@ const CommitteeInterviewTimes = ({
           />
         </div>
       </form>
-
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="flex flex-col bg-gray-100 dark:bg-gray-800 p-5 rounded shadow-lg">
-            <h2 className="mb-4 text-xl font-semibold">
-              Skriv inn navn på rom:
-            </h2>
-            <input
-              ref={inputRef}
-              type="text"
-              className="my-2 p-2 w-full rounded-lg dark:bg-gray-900  border-gray-900 dark:border-white transition-none outline-none"
-              value={roomInput}
-              onChange={(e) => setRoomInput(e.target.value)}
-            />
-            <div className="flex flex-row justify-center gap-2 mt-4">
-              <button
-                className="px-8 py-2 text-white bg-red-700 rounded-lg hover:bg-red-800"
-                onClick={() => setIsModalOpen(false)}
-              >
-                <XMarkIcon className="w-6 h-6 " />
-              </button>
-              <button
-                className="px-8 py-2 text-white bg-green-700 hover:bg-green-800 rounded-lg"
-                onClick={handleRoomSubmit}
-              >
-                <CheckIcon className="w-6 h-6" />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
