@@ -143,7 +143,7 @@ const CommitteeApplicantOverview: NextPage = () => {
         }}
         content={[
           {
-            title: "Intervjutider",
+            title: "Rombooking",
             icon: <CalendarIcon className="w-5 h-5" />,
             content: (
               <CommitteeInterviewTimes
