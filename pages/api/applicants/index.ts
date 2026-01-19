@@ -56,15 +56,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       const mode = process.env.NODE_ENV;
 
       if (applicant && mode == "production") {
+        let potentialError;
+
         try {
           await sendConfirmationEmail(applicant);
         } catch (error) {
-          console.error("Could not send confirmation email", error);
-        }
-        try {
+          potentialError = error;
+        } finally {
           await sendConfirmationSMS(applicant);
-        } catch (error) {
-          console.error("Could not send confirmation SMS", error);
+        }
+
+        if (potentialError) {
+          throw potentialError;
         }
       }
 
