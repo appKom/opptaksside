@@ -52,10 +52,6 @@ export default CommitteeAboutCard;
 
 // sanitize committee description to prevent XSS attacks while allowing certain HTML tags
 export const sanitizeCommitteeDescription = (html: string): string => {
-  if (typeof window === 'undefined') {
-    return html;
-  }
-
   return DOMPurify.sanitize(html, {
     ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'img'],
     ALLOWED_ATTR: ['href', 'target', 'rel', 'src'],
