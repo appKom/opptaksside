@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
+import { fromZonedTime } from 'date-fns-tz';
+import { timezone } from "../../lib/utils/dateUtils";
+
 interface Props {
   label?: string;
-  updateDates: (dates: { start: string; end: string }) => void;
+  updateDates: (dates: { start: Date; end: Date }) => void;
 }
 
 const DatePickerInput = (props: Props) => {
@@ -9,8 +12,18 @@ const DatePickerInput = (props: Props) => {
   const [toDate, setToDate] = useState("");
 
   useEffect(() => {
-    const startDate = fromDate ? `${fromDate}T00:00` : "";
-    const endDate = toDate ? `${toDate}T23:59` : "";
+    if (!fromDate || !toDate) return;
+    
+    // Parse as Norwegian time, convert to UTC Date object
+    const startDate = fromZonedTime(
+      `${fromDate}T00:00:00`, 
+      timezone
+    );
+    const endDate = fromZonedTime(
+      `${toDate}T23:59:59`, 
+      timezone
+    );
+    
     props.updateDates({ start: startDate, end: endDate });
   }, [fromDate, toDate]);
 
