@@ -13,17 +13,18 @@ const DatePickerInput = (props: Props) => {
 
   useEffect(() => {
     if (!fromDate || !toDate) return;
-    
-    // Parse as Norwegian time, convert to UTC Date object
+
+
+    // Convert to Date objects in correct timezone
     const startDate = fromZonedTime(
-      `${fromDate}T00:00:00`, 
+      `${fromDate}T00:00:00`,
       timezone
     );
     const endDate = fromZonedTime(
-      `${toDate}T23:59:59`, 
+      `${toDate}T23:59:59`,
       timezone
     );
-    
+
     props.updateDates({ start: startDate, end: endDate });
   }, [fromDate, toDate]);
 
@@ -51,6 +52,9 @@ const DatePickerInput = (props: Props) => {
           className="border text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 border-gray-300 text-gray-900 dark:border-gray-600 dark:bg-online-darkBlue dark:text-gray-200"
         />
       </div>
+      <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+        NB: Alle tider er i norsk tidssone (GMT+1)
+      </p>
     </div>
   );
 };

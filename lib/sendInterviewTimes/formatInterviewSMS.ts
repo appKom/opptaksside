@@ -1,3 +1,4 @@
+import { compareAsc } from "date-fns";
 import { emailApplicantInterviewType } from "../types/types";
 import { formatDateHours } from "../utils/dateUtils";
 import { changeDisplayName } from "../utils/toString";
@@ -5,12 +6,10 @@ import { changeDisplayName } from "../utils/toString";
 export const formatInterviewSMS = (applicant: emailApplicantInterviewType) => {
   let phoneBody = `Hei ${applicant.applicantName}, her er dine intervjutider for ${applicant.period_name}: \n \n`;
 
-  applicant.committees.sort((a, b) => {
-    return (
-      new Date(a.interviewTime.start).getTime() -
-      new Date(b.interviewTime.start).getTime()
-    );
-  });
+  // Sort committees by interview start time
+  applicant.committees.sort((a, b) => 
+    compareAsc(a.interviewTime.start, b.interviewTime.start)
+  );
 
   applicant.committees.forEach((committee) => {
     phoneBody += `Komité: ${changeDisplayName(committee.committeeName)} \n`;

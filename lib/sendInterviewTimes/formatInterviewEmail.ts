@@ -1,3 +1,4 @@
+import { compareAsc } from "date-fns";
 import {
   emailApplicantInterviewType,
   emailCommitteeInterviewType,
@@ -11,12 +12,10 @@ export const formatApplicantInterviewEmail = (
 ) => {
   let emailBody = `<p>Hei <strong>${applicant.applicantName}</strong>,</p><p>Her er dine intervjutider for ${applicant.period_name}:</p><ul><br/>`;
 
-  applicant.committees.sort((a, b) => {
-    return (
-      new Date(a.interviewTime.start).getTime() -
-      new Date(b.interviewTime.start).getTime()
-    );
-  });
+  // Sort committees by interview start time
+  applicant.committees.sort((a, b) => 
+    compareAsc(a.interviewTime.start, b.interviewTime.start)
+  );
 
   applicant.committees.forEach((committee) => {
     emailBody += `<li><b>Komité:</b> ${changeDisplayName(
@@ -49,12 +48,10 @@ export const formatCommitteeInterviewEmail = (
     committee.applicants.length
   } søkere:</p><ul>`;
 
-  committee.applicants.sort((a, b) => {
-    return (
-      new Date(a.interviewTime.start).getTime() -
-      new Date(b.interviewTime.start).getTime()
-    );
-  });
+  // Sort applicants by interview start time
+  committee.applicants.sort((a, b) => 
+    compareAsc(a.interviewTime.start, b.interviewTime.start)
+  );
 
   committee.applicants.forEach((applicant) => {
     emailBody += `<li><b>Navn:</b> ${applicant.applicantName}<br>`;

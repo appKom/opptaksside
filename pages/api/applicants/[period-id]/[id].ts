@@ -10,7 +10,7 @@ import {
   checkOwId,
 } from "../../../../lib/utils/apiChecks";
 import { getPeriodById } from "../../../../lib/mongo/periods";
-import { isBefore } from "date-fns/isBefore";
+import { isBefore } from "date-fns";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const session = await getServerSession(req, res, authOptions);

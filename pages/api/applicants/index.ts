@@ -8,6 +8,7 @@ import { isApplicantType } from "../../../lib/utils/validators";
 import { isAdmin, hasSession, checkOwId } from "../../../lib/utils/apiChecks";
 import { sendConfirmationSMS } from "../../../lib/sms/sendConfirmationSMS";
 import { sendConfirmationEmail } from "../../../lib/email/sendConfirmationEmail";
+import { isAfter, isBefore } from "date-fns";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const session = await getServerSession(req, res, authOptions);
@@ -43,7 +44,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       const applicationEnd = period.applicationPeriod.end;
 
       // Check if the current time is within the application period
-      if (now < applicationStart || now > applicationEnd) {
+      if (isBefore(now, applicationStart) || isAfter(now, applicationEnd)) {
         return res
           .status(400)
           .json({ error: "Not within the application period" });
