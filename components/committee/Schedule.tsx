@@ -58,9 +58,20 @@ export default function Schedule({
     return dates;
   };
 
-  const convertToIso = (date: string, timeSlot: string): IsoTimeSlot => {
-    const [startTimeStr, endTimeStr] = timeSlot.split(" - ");
-    const [year, month, day] = date.split("-").map(Number);
+  const convertToIso = (slots: {
+    date: string;
+    times: string[];
+  }): IsoTimeSlot => {
+    const [startSlot, endSlot] = [
+      slots.times[0],
+      slots.times[slots.times.length - 1],
+    ];
+    const [startDateStr, endDateStr] = [slots.date, slots.date];
+
+    const [startTimeStr] = startSlot.split(" - ");
+    const [, endTimeStr] = endSlot.split(" - ");
+
+    const [year, month, day] = slots.date.split("-").map(Number);
 
     const [startHour, startMinute] = parseTime(startTimeStr);
     const startTime = new Date(
@@ -91,6 +102,35 @@ export default function Schedule({
     return [hour, minute];
   };
 
+  const groupConsecutiveSlots = (
+    slots: { date: string; time: string }[]
+  ): { date: string; times: string[] }[] => {
+    const groupedSlots: { date: string; times: string[] }[] = [];
+    let currentGroup: { date: string; times: string[] } | null = null;
+
+    slots.forEach((slot) => {
+      if (
+        currentGroup &&
+        slot.date === currentGroup.date &&
+        slot.time.split(" - ")[0] ===
+          currentGroup.times[currentGroup.times.length - 1].split(" - ")[1]
+      ) {
+        currentGroup.times.push(slot.time);
+      } else {
+        if (currentGroup) {
+          groupedSlots.push(currentGroup);
+        }
+        currentGroup = { date: slot.date, times: [slot.time] };
+      }
+    });
+
+    if (currentGroup) {
+      groupedSlots.push(currentGroup);
+    }
+
+    return groupedSlots;
+  };
+
   useEffect(() => {
     const dates = getDatesWithinPeriod(periodTime);
     const allAvailableTimes: { date: string; time: string }[] = [];
@@ -101,8 +141,10 @@ export default function Schedule({
       });
     });
 
-    const isoTimeSlotsForExport = allAvailableTimes.map((slot) =>
-      convertToIso(slot.date, slot.time)
+    const groupedTimeSlots = groupConsecutiveSlots(allAvailableTimes);
+
+    const isoTimeSlotsForExport = groupedTimeSlots.map((slot) =>
+      convertToIso(slot)
     );
 
     setApplicationData({
@@ -146,8 +188,10 @@ export default function Schedule({
         });
       });
 
-      const isoTimeSlotsForExport = dataToSend.map((slot) =>
-        convertToIso(slot.date, slot.time)
+      const groupedTimeSlots = groupConsecutiveSlots(dataToSend);
+
+      const isoTimeSlotsForExport = groupedTimeSlots.map((slot) =>
+        convertToIso(slot)
       );
 
       setApplicationData({
