@@ -129,8 +129,6 @@ const Application: NextPage = () => {
     onSuccess: () => {
       queryClient.setQueryData(["applicant", periodId, applicantId], null);
       toast.success("Søknad trukket tilbake");
-      setActiveTab(0);
-      setShowApplicationForm(true);
       router.push("/apply");
     },
     onError: () => toast.error("Det skjedde en feil, vennligst prøv igjen"),

@@ -34,7 +34,7 @@ export const ApplicationForm = (props: Props) => {
   });
 
   const optionalCommittees: string[] = props.optionalCommittees.map(
-    (committee) => committee.toLowerCase()
+    (committee) => committee.toLowerCase(),
   );
 
   const addOptionalCommittee = (committee: string, value: string) => {
@@ -44,7 +44,7 @@ export const ApplicationForm = (props: Props) => {
       updatedCommittees.push(committee);
     } else if (value === "nei" && updatedCommittees.includes(committee)) {
       updatedCommittees = updatedCommittees.filter(
-        (item) => item !== committee
+        (item) => item !== committee,
       );
     }
 
@@ -70,12 +70,10 @@ export const ApplicationForm = (props: Props) => {
   useEffect(() => {
     if (props.applicationData.optionalCommittees) {
       setSelectedOptionalCommittees(
-        props.applicationData.optionalCommittees.filter(Boolean) as string[]
+        props.applicationData.optionalCommittees.filter(Boolean) as string[],
       );
     }
   }, [props.applicationData.optionalCommittees]);
-
-  console.log(props.applicationData);
 
   return (
     <div className="flex items-center justify-center">

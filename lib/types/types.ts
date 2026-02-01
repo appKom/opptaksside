@@ -32,7 +32,6 @@ export type applicantType = {
     },
   ];
   date: Date;
-  lastModified?: Date;
   periodId: string | ObjectId;
 };
 
