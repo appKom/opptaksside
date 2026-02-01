@@ -60,16 +60,15 @@ export const formatCommitteeInterviewEmail = (
     emailBody += `<li><b>Navn:</b> ${applicant.applicantName}<br>`;
     emailBody += `<b>Telefon:</b> ${applicant.applicantPhone} <br> `;
 
-    if (applicant.interviewTime.start !== "Ikke satt") {
+    if (applicant.interviewTime.start === "Ikke satt") {
+      emailBody += `<b>Tid:</b> Ikke satt. Ta kontakt med søker for å avtale tidspunkt.`;
+    } else {
       emailBody += `<b>Tid:</b> ${formatDateHours(
         applicant.interviewTime.start,
         applicant.interviewTime.end,
       )}<br>`;
     }
 
-    if (applicant.interviewTime.start === "Ikke satt") {
-      emailBody += `<b>Tid:</b> Ikke satt. Ta kontakt med søker for å avtale tidspunkt.`;
-    }
     emailBody += `<b>Rom:</b> ${applicant.interviewTime.room}</li><br>`;
   });
 
