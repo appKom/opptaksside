@@ -29,13 +29,13 @@ const Admin = () => {
   useEffect(() => {
     setPeriod(data?.period);
     setCommittees(
-      data?.period.committees.concat(data?.period.optionalCommittees)
+      data?.period.committees.concat(data?.period.optionalCommittees),
     );
   }, [data, session?.user?.owId]);
 
   const sendOutInterviewTimes = async ({ periodId }: { periodId: string }) => {
     const confirm = window.confirm(
-      "Er du sikker på at du vil sende ut intervju tider?"
+      "Er du sikker på at du vil sende ut intervjutider?",
     );
 
     if (!confirm) return;
@@ -45,7 +45,7 @@ const Admin = () => {
         `/api/periods/send-interview-times/${periodId}`,
         {
           method: "POST",
-        }
+        },
       );
       if (!response.ok) {
         throw new Error("Failed to send out interview times");

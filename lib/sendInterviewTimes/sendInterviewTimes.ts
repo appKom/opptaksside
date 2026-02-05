@@ -52,7 +52,7 @@ export const sendOutInterviewTimes = async ({
     const algorithmData = fetchedAlgorithmData.interviews || [];
 
     const applicantsToEmail = await formatApplicants(
-      applicants.applications!, // Should exists since would return if applicants.error
+      applicants.applications!, // Should exist since would return if applicants.error
       algorithmData,
       periodId,
       period,
