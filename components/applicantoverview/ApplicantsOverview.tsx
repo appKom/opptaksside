@@ -2,9 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import {
   applicantType,
   bankomOptionsType,
-  committeePreferenceType,
   periodType,
-  preferencesType,
 } from "../../lib/types/types";
 import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/outline";
 import ApplicantOverviewSkeleton from "../skeleton/ApplicantOverviewSkeleton";
