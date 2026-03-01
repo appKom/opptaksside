@@ -216,6 +216,7 @@ const NewPeriod = ({ period }: Props) => {
               values={availableCommittees}
               order={1}
               required
+              checkedItems={periodData.committees?.filter(Boolean) as string[]}
             />
             <CheckboxInput
               updateInputValues={(selectedValues: string[]) => {
@@ -230,6 +231,7 @@ const NewPeriod = ({ period }: Props) => {
               info=" Valgfrie komiteer er komiteene som søkere kan velge i
                     tillegg til de maksimum 3 komiteene de kan søke på.
                     Eksempelvis: FeminIT"
+              checkedItems={periodData.optionalCommittees?.filter(Boolean) as string[]}
             />
           </div>
         )}
