@@ -28,7 +28,7 @@ def main():
         case "production":
             mongo_uri = os.getenv("MONGODB_URI_PROD")
         case _:
-            return jsonify({"error": "Given Database-Version not allowed"}), 400
+            return jsonify({"error": "Given Database-Name not allowed"}), 400
 
     if not mongo_uri:
         return jsonify({"error": "Environment variable not set"}), 500
