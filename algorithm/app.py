@@ -23,9 +23,9 @@ def main():
     database_name = request.headers.get("Database-Name")
 
     match database_name:
-        case "DEVELOPMENT":
+        case "development":
             mongo_uri = os.getenv("MONGODB_URI_DEV")
-        case "PRODUCTION":
+        case "production":
             mongo_uri = os.getenv("MONGODB_URI_PROD")
         case _:
             return jsonify({"error": "Given Database-Version not allowed"}), 400
