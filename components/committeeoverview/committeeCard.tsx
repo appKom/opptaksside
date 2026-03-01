@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import {
   applicantType,
   committeeInterviewType,
-  committeePreferenceType,
   preferencesType,
 } from "../../lib/types/types";
 import { fetchCommitteesByPeriod } from "../../lib/api/committeesApi";
@@ -32,7 +31,7 @@ const getApplicantCommittees = (applicant: applicantType): string[] => {
           (preferences as preferencesType).second,
           (preferences as preferencesType).third,
         ]
-      : (preferences as committeePreferenceType[]).map(
+      : (preferences as unknown as { committee: string }[]).map(
           (preference) => preference.committee,
         );
 
