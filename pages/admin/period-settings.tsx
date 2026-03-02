@@ -17,7 +17,18 @@ import { createPeriod } from "../../lib/api/periodApi";
 import { SimpleTitle } from "../../components/Typography";
 import { getCommitteeDisplayNameFactory } from "../../lib/utils/getCommitteeDisplayNameFactory";
 
-const NewPeriod = () => {
+const formatDateForInput = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+interface Props {
+  period?: periodType | null
+}
+
+const PeriodSettings = ({ period }: Props) => {
   const queryClient = useQueryClient();
   const router = useRouter();
   const [showPreview, setShowPreview] = useState(false);
@@ -68,6 +79,22 @@ const NewPeriod = () => {
         queryKey: ["periods"],
       }),
   });
+
+  useEffect(() => {
+    if (!period) return;
+    setPeriodData({
+      ...period,
+      applicationPeriod: {
+        start: new Date(period.applicationPeriod.start),
+        end: new Date(period.applicationPeriod.end)
+      },
+      interviewPeriod: {
+        start: new Date(period.interviewPeriod.start),
+        end: new Date(period.interviewPeriod.end)
+      }
+    }
+    );
+  }, [period]);
 
   useEffect(() => {
     if (!owCommitteeData) return;
@@ -134,11 +161,12 @@ const NewPeriod = () => {
     setShowPreview((prev) => !prev);
   };
 
+  
   if (owCommitteeIsError) return <ErrorPage />;
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <SimpleTitle title="Ny opptaksperiode" />
+      {period ? <SimpleTitle title="Rediger opptaksperiode" /> : <SimpleTitle title="Ny opptaksperiode" />}
 
       <div className="flex flex-col items-center w-full py-10">
         <TextInput
@@ -157,6 +185,7 @@ const NewPeriod = () => {
             label="Beskrivelse"
             placeholder="Flere komiteer søker nye medlemmer til suppleringsopptak. Har du det som trengs? Søk nå og bli en del av vårt fantastiske miljø!
             "
+            value={periodData.description}
             updateInputValues={(value: string) =>
               setPeriodData({
                 ...periodData,
@@ -169,11 +198,30 @@ const NewPeriod = () => {
         <DatePickerInput
           label="Søknadsperiode"
           updateDates={updateApplicationPeriodDates}
+          fromDate={
+            periodData.applicationPeriod?.start instanceof Date
+              ? formatDateForInput(periodData.applicationPeriod.start)
+              : undefined
+          }
+          toDate={
+            periodData.applicationPeriod?.end instanceof Date
+              ? formatDateForInput(periodData.applicationPeriod.end)
+              : undefined
+          }
         />
         <DatePickerInput
           label="Intervjuperiode"
           updateDates={updateInterviewPeriodDates}
-        />
+          fromDate={
+            periodData.interviewPeriod?.start instanceof Date
+              ? formatDateForInput(periodData.interviewPeriod.start)
+              : undefined
+          }
+          toDate={
+            periodData.interviewPeriod?.end instanceof Date
+              ? formatDateForInput(periodData.interviewPeriod.end)
+              : undefined
+          }        />
 
         {owCommitteeIsLoading ? (
           <div className="animate-pulse">Laster komiteer...</div>
@@ -190,6 +238,7 @@ const NewPeriod = () => {
               values={availableCommittees}
               order={1}
               required
+              checkedItems={periodData.committees?.filter(Boolean) as string[]}
             />
             <CheckboxInput
               updateInputValues={(selectedValues: string[]) => {
@@ -204,6 +253,7 @@ const NewPeriod = () => {
               info=" Valgfrie komiteer er komiteene som søkere kan velge i
                     tillegg til de maksimum 3 komiteene de kan søke på.
                     Eksempelvis: FeminIT"
+              checkedItems={periodData.optionalCommittees?.filter(Boolean) as string[]}
             />
           </div>
         )}
@@ -216,7 +266,7 @@ const NewPeriod = () => {
             onClick={handlePreviewPeriod}
           />
           <Button
-            title="Opprett opptaksperiode"
+            title={period ? "Lagre endringer" : "Opprett opptaksperiode"}
             color="blue"
             onClick={handleAddPeriod}
           />
@@ -241,4 +291,4 @@ const NewPeriod = () => {
   );
 };
 
-export default NewPeriod;
+export default PeriodSettings;
