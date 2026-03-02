@@ -21,7 +21,7 @@ interface Props {
   period?: periodType | null
 }
 
-const NewPeriod = ({ period }: Props) => {
+const PeriodSettings = ({ period }: Props) => {
   const queryClient = useQueryClient();
   const router = useRouter();
   const [showPreview, setShowPreview] = useState(false);
@@ -159,7 +159,7 @@ const NewPeriod = ({ period }: Props) => {
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <SimpleTitle title="Ny opptaksperiode" />
+      {period ? <SimpleTitle title="Rediger opptaksperiode" /> : <SimpleTitle title="Ny opptaksperiode" />}
 
       <div className="flex flex-col items-center w-full py-10">
         <TextInput
@@ -244,7 +244,7 @@ const NewPeriod = ({ period }: Props) => {
             onClick={handlePreviewPeriod}
           />
           <Button
-            title="Opprett opptaksperiode"
+            title={period ? "Lagre endringer" : "Opprett opptaksperiode"}
             color="blue"
             onClick={handleAddPeriod}
           />
@@ -269,4 +269,4 @@ const NewPeriod = ({ period }: Props) => {
   );
 };
 
-export default NewPeriod;
+export default PeriodSettings;

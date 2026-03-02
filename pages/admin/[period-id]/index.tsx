@@ -13,7 +13,7 @@ import { fetchPeriodById } from "../../../lib/api/periodApi";
 import LoadingPage from "../../../components/LoadingPage";
 import ErrorPage from "../../../components/ErrorPage";
 import toast from "react-hot-toast";
-import NewPeriod from "../new-period";
+import PeriodSettings from "../period-settings";
 
 const Admin = () => {
   const { data: session } = useSession();
@@ -124,7 +124,7 @@ const Admin = () => {
             title: "Instillinger",
             icon: <CogIcon className="w-5 h-5" />,
             content: (
-              <NewPeriod period={period}/>
+              <PeriodSettings period={period}/>
             )
           },
           //Super admin :)
