@@ -2,7 +2,6 @@ import ScheduleCell from "./ScheduleCell";
 import { useState } from "react";
 import getTimeSlots from "../../lib/utils/getTimeSlots";
 import { convertIsoToScheduleFormat } from "../../lib/utils/convertIsoToScheduleFormat";
-import { time } from "console";
 
 interface Props {
   date: string;
