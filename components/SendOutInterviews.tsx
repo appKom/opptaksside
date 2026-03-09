@@ -1,8 +1,10 @@
 import toast from "react-hot-toast";
-import { periodType } from "../lib/types/types";
+import { MatchingResult, periodType } from "../lib/types/types";
 import Button from "./Button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { getInterviewsByPeriod } from "../lib/mongo/interviews";
+import { fetchInterviewsByPeriod } from "../lib/api/interviewApi";
 
 interface Props {
   period: periodType | null;
@@ -12,6 +14,25 @@ const SendOutInterviews = ({ period }: Props) => {
   const queryClient = useQueryClient();
 
   const [isWaitingOnMatching, setIsWaitingOnMatching] = useState(false);
+  const [matchingResult, setMatchingResult] = useState<MatchingResult | null>(
+    null,
+  );
+
+  useEffect(() => {
+    if (!period?._id) return;
+
+    fetchInterviewsByPeriod(period?._id.toString()).then((result) => {
+      const total_number_of_interviews =
+        result.reduce(
+          (current_sum, { interviews }) => current_sum + interviews.length,
+          0,
+        ) ?? 0;
+      setMatchingResult({
+        matched_meetings: total_number_of_interviews,
+        total_wanted_meetings: 3,
+      });
+    });
+  }, [period]);
 
   const runMatching = async ({ periodId }: { periodId: string }) => {
     const confirm = window.confirm(
@@ -76,16 +97,28 @@ const SendOutInterviews = ({ period }: Props) => {
         disabled={period?.hasMatchedInterviews || isWaitingOnMatching}
         onClick={async () => {
           setIsWaitingOnMatching(true);
-          await runMatching({ periodId: period!._id.toString() }).then(() => {
-            setIsWaitingOnMatching(false);
+          await runMatching({ periodId: period!._id.toString() }).then(
+            (result) => {
+              setIsWaitingOnMatching(false);
+              setMatchingResult(result);
 
-            // refetch state
-            queryClient.invalidateQueries({
-              queryKey: ["periods", period?._id],
-            });
-          });
+              // refetch state
+              queryClient.invalidateQueries({
+                queryKey: ["periods", period?._id],
+              });
+            },
+          );
         }}
       />
+
+      {period?.hasMatchedInterviews && matchingResult != null && (
+        <div>
+          <p>
+            Klarte å matche {matchingResult.matched_meetings} av{" "}
+            {matchingResult.total_wanted_meetings}
+          </p>
+        </div>
+      )}
 
       <Button
         title={"Send ut intervjutider"}

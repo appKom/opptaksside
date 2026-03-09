@@ -152,3 +152,19 @@ export type emailApplicantInterviewType = {
     };
   }[];
 };
+
+export type MatchingResult = {
+  matched_meetings: number;
+  results: {
+    applicantId: string;
+    interview: {
+      committeeName: string;
+      start: string;
+      end: string;
+      room: string;
+    }[];
+    periodId: string;
+  }[];
+  status: "OptimizationStatus.OPTIMAL" | ""; // TODO: Add more types
+  total_wanted_meetings: number;
+};
