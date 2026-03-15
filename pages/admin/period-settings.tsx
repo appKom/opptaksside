@@ -182,13 +182,6 @@ const PeriodSettings = ({ period }: Props) => {
 
     createPeriodMutation.mutate(periodData as periodType);
   };
-
-  useEffect(() => {
-    if (editPeriodMutation.isSuccess) {
-      toast.success("Periode redigert");
-    }
-    if (createPeriodMutation.isError) toast.error("Noe gikk galt, prøv igjen");
-  }, [createPeriodMutation.isError, editPeriodMutation]);
   
 
   const handleEditPeriod = () => {
@@ -196,13 +189,17 @@ const PeriodSettings = ({ period }: Props) => {
     if (!period) return;
 
     const changedFields = getChangedFields(period, periodData);
-
-    console.log(changedFields);
-
-    editPeriodMutation.mutate({
-      _id: period._id,
-      ...changedFields,
-    } as periodType);
+    
+    try {
+      editPeriodMutation.mutate({
+        _id: period._id,
+        ...changedFields,
+      } as periodType);
+      toast.success("Periode redigert");
+    } catch (e) {
+      console.error(e);
+      toast.error("Noe gikk galt, prøv igjen");
+    }
   };
 
   const handlePreviewPeriod = () => {
