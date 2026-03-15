@@ -13,7 +13,7 @@ import { validatePeriod } from "../../lib/utils/PeriodValidator";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchOwCommittees } from "../../lib/api/committeesApi";
 import ErrorPage from "../../components/ErrorPage";
-import { createPeriod } from "../../lib/api/periodApi";
+import { createPeriod, editPeriod } from "../../lib/api/periodApi";
 import { SimpleTitle } from "../../components/Typography";
 import { getCommitteeDisplayNameFactory } from "../../lib/utils/getCommitteeDisplayNameFactory";
 
@@ -24,6 +24,24 @@ const formatDateForInput = (date: Date) => {
   return `${year}-${month}-${day}`;
 };
 
+const getChangedFields = (
+  original: periodType,
+  current: DeepPartial<periodType>
+): Partial<periodType> => {
+  const changed: Partial<periodType> = {};
+
+  (Object.keys(current) as (keyof periodType)[]).forEach((key) => {
+    const originalValue = original[key];
+    const currentValue = current[key];
+
+    if (JSON.stringify(originalValue) !== JSON.stringify(currentValue)) {
+      changed[key] = currentValue as any;
+    }
+  });
+
+  return changed;
+};
+
 interface Props {
   period?: periodType | null
 }
@@ -32,7 +50,7 @@ const PeriodSettings = ({ period }: Props) => {
   const queryClient = useQueryClient();
   const router = useRouter();
   const [showPreview, setShowPreview] = useState(false);
-
+  
   const [getCommitteeDisplayName, setGetCommitteeDisplayName] = useState<
     (committee: string) => string
     // Uses a wrapper function to not interpret the function as a setStateAction-function
@@ -76,6 +94,14 @@ const PeriodSettings = ({ period }: Props) => {
     onSuccess: () =>
       queryClient.invalidateQueries({
         // TODO: try to update cache instead
+        queryKey: ["periods"],
+      }),
+  });
+
+  const editPeriodMutation = useMutation({
+    mutationFn: editPeriod,
+    onSuccess: () => 
+      queryClient.invalidateQueries({
         queryKey: ["periods"],
       }),
   });
@@ -157,6 +183,28 @@ const PeriodSettings = ({ period }: Props) => {
     createPeriodMutation.mutate(periodData as periodType);
   };
 
+  useEffect(() => {
+    if (editPeriodMutation.isSuccess) {
+      toast.success("Periode redigert");
+    }
+    if (createPeriodMutation.isError) toast.error("Noe gikk galt, prøv igjen");
+  }, [createPeriodMutation.isError, editPeriodMutation]);
+  
+
+  const handleEditPeriod = () => {
+    if (!validatePeriod(periodData)) return;
+    if (!period) return;
+
+    const changedFields = getChangedFields(period, periodData);
+
+    console.log(changedFields);
+
+    editPeriodMutation.mutate({
+      _id: period._id,
+      ...changedFields,
+    } as periodType);
+  };
+
   const handlePreviewPeriod = () => {
     setShowPreview((prev) => !prev);
   };
@@ -173,12 +221,12 @@ const PeriodSettings = ({ period }: Props) => {
           label="Navn"
           defaultValue={periodData.name}
           placeholder="Eksempel: Suppleringsopptak vår 2025"
-          updateInputValues={(value: string) =>
-            setPeriodData({
-              ...periodData,
-              name: value,
-            })
-          }
+          updateInputValues={(value: string) => {
+              setPeriodData({
+                ...periodData,
+                name: value,
+              })
+          }}
         />
         <div className="w-full max-w-xs">
           <TextAreaInput
@@ -186,12 +234,12 @@ const PeriodSettings = ({ period }: Props) => {
             placeholder="Flere komiteer søker nye medlemmer til suppleringsopptak. Har du det som trengs? Søk nå og bli en del av vårt fantastiske miljø!
             "
             value={periodData.description}
-            updateInputValues={(value: string) =>
+            updateInputValues={(value: string) => {
               setPeriodData({
                 ...periodData,
                 description: value,
               })
-            }
+            }}
           />
         </div>
 
@@ -268,7 +316,7 @@ const PeriodSettings = ({ period }: Props) => {
           <Button
             title={period ? "Lagre endringer" : "Opprett opptaksperiode"}
             color="blue"
-            onClick={handleAddPeriod}
+            onClick={period ? handleEditPeriod : handleAddPeriod}
           />
         </div>
       </div>
