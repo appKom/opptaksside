@@ -1,5 +1,6 @@
 from pymongo import MongoClient
 from pymongo.database import Database
+from bson.objectid import ObjectId
 from dotenv import load_dotenv
 from datetime import datetime, timedelta, timezone
 import os
@@ -17,7 +18,7 @@ app = Flask(__name__)
 API_SECRET = os.environ.get("INTERNAL_API_SECRET")
 
 
-@app.route("/")  # type: ignore
+@app.route("/")
 def main():
     incoming_secret = request.headers.get("X-Internal-Secret")
 
@@ -96,7 +97,7 @@ def add_matching_status(
         "matched_meetings": match_result["matched_meetings"],
     }
     
-    period_collection.find_one_and_update({"_id": period_id}, {"$set": {
+    period_collection.find_one_and_update({"_id": ObjectId(period_id)}, {"$set": {
         "matching_status": matching_status
     }})
 
